@@ -139,7 +139,7 @@ class Bob:
             logging.info("Stop listening")
 
     def send_evaluation(self, entry):
-        """Evaluate yao circuit for all Bob and Alice's inputs and
+        """Evaluate yao2mpc circuit for all Bob and Alice's inputs and
         send back the results.
 
         Args:
@@ -260,7 +260,6 @@ def main(
     loglevel=logging.WARNING,
 ):
     logging.getLogger().setLevel(loglevel)
-
     if party == "alice":
         alice = Alice(circuit_path, oblivious_transfer=oblivious_transfer)
         alice.start()
@@ -276,7 +275,6 @@ def main(
 
 if __name__ == '__main__':
     import argparse
-
     def init():
         loglevels = {
             "debug": logging.DEBUG,
@@ -285,11 +283,13 @@ if __name__ == '__main__':
             "error": logging.ERROR,
             "critical": logging.CRITICAL
         }
-
         parser = argparse.ArgumentParser(description="Run Yao protocol.")
-        parser.add_argument("party",
-                            choices=["alice", "bob", "local"],
-                            help="the yao party to run")
+        parser.add_argument(
+            "party",
+            choices=["alice", "bob", "local"],
+            help="the yao2mpc party to run"
+        )
+
         parser.add_argument(
             "-c",
             "--circuit",
@@ -297,21 +297,29 @@ if __name__ == '__main__':
             default="circuits/default.json",
             help=("the JSON circuit file for alice and local tests"),
         )
-        parser.add_argument("--no-oblivious-transfer",
-                            action="store_true",
-                            help="disable oblivious transfer")
+
+        parser.add_argument(
+            "--no-oblivious-transfer",
+            action="store_true",
+            help="disable oblivious transfer"
+        )
+
         parser.add_argument(
             "-m",
             metavar="mode",
             choices=["circuit", "table"],
             default="circuit",
-            help="the print mode for local tests (default 'circuit')")
-        parser.add_argument("-l",
-                            "--loglevel",
-                            metavar="level",
-                            choices=loglevels.keys(),
-                            default="warning",
-                            help="the log level (default 'warning')")
+            help="the print mode for local tests (default 'circuit')"
+        )
+
+        parser.add_argument(
+            "-l",
+            "--loglevel",
+            metavar="level",
+            choices=loglevels.keys(),
+            default="warning",
+            help="the log level (default 'warning')"
+        )
 
         main(
             party=parser.parse_args().party,

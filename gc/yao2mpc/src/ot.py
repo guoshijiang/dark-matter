@@ -16,7 +16,7 @@ class ObliviousTransfer:
             a_inputs: A dict mapping Alice's wires to (key, encr_bit) inputs.
             b_keys: A dict mapping each Bob's wire to a pair (key, encr_bit).
         Returns:
-            The result of the yao circuit evaluation.
+            The result of the yao2mpc circuit evaluation.
         """
         logging.debug("Sending inputs to Bob")
         self.socket.send(a_inputs)
@@ -39,7 +39,7 @@ class ObliviousTransfer:
 
         Args:
             circuit: A dict containing circuit spec.
-            g_tables: Garbled tables of yao circuit.
+            g_tables: Garbled tables of yao2mpc circuit.
             pbits_out: p-bits of outputs.
             b_inputs: A dict mapping Bob's wires to (clear) input bits.
         """

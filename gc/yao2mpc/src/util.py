@@ -7,7 +7,7 @@ import zmq
 
 # SOCKET
 LOCAL_PORT = 4080
-SERVER_HOST = "localhost"
+SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 4080
 
 
@@ -26,10 +26,6 @@ class Socket:
     def send_wait(self, msg):
         self.send(msg)
         return self.receive()
-
-    """
-    From https://stackoverflow.com/questions/17174001/stop-pyzmq-receiver-by-keyboardinterrupt
-    """
 
     def poll_socket(self, timetick=100):
         try:

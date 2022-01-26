@@ -32,11 +32,11 @@ def decrypt(key, data):
 
 
 def evaluate(circuit, g_tables, pbits_out, a_inputs, b_inputs):
-    """Evaluate yao circuit with given inputs.
+    """Evaluate yao2mpc circuit with given inputs.
 
     Args:
         circuit: A dict containing circuit spec.
-        g_tables: The yao circuit garbled tables.
+        g_tables: The yao2mpc circuit garbled tables.
         pbits_out: The pbits of outputs.
         a_inputs: A dict mapping Alice's wires to (key, encr_bit) inputs.
         b_inputs: A dict mapping Bob's wires to (key, encr_bit) inputs.
@@ -88,7 +88,7 @@ class GarbledGate:
         pbits: A dict mapping each wire to its p-bit.
     """
     def __init__(self, gate, keys, pbits):
-        self.keys = keys  # dict of yao circuit keys
+        self.keys = keys  # dict of yao2mpc circuit keys
         self.pbits = pbits  # dict of p-bits
         self.input = gate["in"]  # list of inputs'ID
         self.output = gate["id"]  # ID of output
