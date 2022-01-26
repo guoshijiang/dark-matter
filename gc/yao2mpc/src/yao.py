@@ -4,43 +4,23 @@ from cryptography.fernet import Fernet
 
 
 def encrypt(key, data):
-    """Encrypt a message.
-
-    Args:
-        key: The encryption key.
-        data: The message to encrypt.
-
-    Returns:
-        The encrypted message as a byte stream.
-    """
     f = Fernet(key)
     return f.encrypt(data)
 
 
 def decrypt(key, data):
-    """Decrypt a message.
-
-    Args:
-        key: The decryption key.
-        data: The message to decrypt.
-
-    Returns:
-        The decrypted message as a byte stream.
-    """
     f = Fernet(key)
     return f.decrypt(data)
 
 
 def evaluate(circuit, g_tables, pbits_out, a_inputs, b_inputs):
     """Evaluate yao2mpc circuit with given inputs.
-
     Args:
         circuit: A dict containing circuit spec.
         g_tables: The yao2mpc circuit garbled tables.
         pbits_out: The pbits of outputs.
         a_inputs: A dict mapping Alice's wires to (key, encr_bit) inputs.
         b_inputs: A dict mapping Bob's wires to (key, encr_bit) inputs.
-
     Returns:
         A dict mapping output wires with their result bit.
     """
@@ -48,7 +28,6 @@ def evaluate(circuit, g_tables, pbits_out, a_inputs, b_inputs):
     wire_outputs = circuit["out"]  # list of output wires
     wire_inputs = {}  # dict containing Alice and Bob inputs
     evaluation = {}  # dict containing result of evaluation
-
     wire_inputs.update(a_inputs)
     wire_inputs.update(b_inputs)
 
@@ -75,13 +54,11 @@ def evaluate(circuit, g_tables, pbits_out, a_inputs, b_inputs):
     # After all gates have been evaluated, we populate the dict of results
     for out in wire_outputs:
         evaluation[out] = wire_inputs[out][1] ^ pbits_out[out]
-
     return evaluation
 
 
 class GarbledGate:
     """A representation of a garbled gate.
-
     Args:
         gate: A dict containing gate spec.
         keys: A dict mapping each wire to a pair of keys.

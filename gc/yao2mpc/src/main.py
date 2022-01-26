@@ -5,17 +5,16 @@ import util
 import yao
 from abc import ABC, abstractmethod
 
-logging.basicConfig(format="[%(levelname)s] %(message)s",
-                    level=logging.WARNING)
+
+logging.basicConfig(format="[%(levelname)s] %(message)s",level=logging.WARNING)
 
 
+"""Yao 乱码的抽象类（例如 Alice)"""
 class YaoGarbler(ABC):
-    """An abstract class for Yao garblers (e.g. Alice)."""
     def __init__(self, circuits):
         circuits = util.parse_json(circuits)
         self.name = circuits["name"]
         self.circuits = []
-
         for circuit in circuits["circuits"]:
             garbled_circuit = yao.GarbledCircuit(circuit)
             pbits = garbled_circuit.get_pbits()
@@ -25,8 +24,7 @@ class YaoGarbler(ABC):
                 "garbled_tables": garbled_circuit.get_garbled_tables(),
                 "keys": garbled_circuit.get_keys(),
                 "pbits": pbits,
-                "pbits_out": {w: pbits[w]
-                              for w in circuit["out"]},
+                "pbits_out": {w: pbits[w] for w in circuit["out"]},
             }
             self.circuits.append(entry)
 
@@ -36,20 +34,15 @@ class YaoGarbler(ABC):
 
 
 class Alice(YaoGarbler):
-    """Alice is the creator of the Yao circuit.
-
-    Alice creates a Yao circuit and sends it to the evaluator along with her
-    encrypted inputs. Alice will finally print the truth table of the circuit
-    for all combination of Alice-Bob inputs.
-
-    Alice does not know Bob's inputs but for the purpose
-    of printing the truth table only, Alice assumes that Bob's inputs follow
-    a specific order.
-
-    Attributes:
-        circuits: the JSON file containing circuits
-        oblivious_transfer: Optional; enable the Oblivious Transfer protocol
-            (True by default).
+    """
+    Alice是 Yao 电路的创造者。
+      Alice 创建了一个 Yao 电路并将其与她的加密输入一起发送给评估器。 Alice 最终会打印出电路的真值表
+      对于 Alice->Bob 输入的所有组合。
+      Alice 不知道 Bob 的输入，但出于此目的
+      仅打印真值表，Alice 假设 Bob 的输入如下一个特定的命令
+      Attributes：
+        circuits：包含电路的 JSON 文件
+        oblivious_transfer：可选;启用不经意传输协议(默认为真0。
     """
     def __init__(self, circuits, oblivious_transfer=True):
         super().__init__(circuits)
@@ -57,7 +50,7 @@ class Alice(YaoGarbler):
         self.ot = ot.ObliviousTransfer(self.socket, enabled=oblivious_transfer)
 
     def start(self):
-        """Start Yao protocol."""
+        """开启 Yao 协议."""
         for circuit in self.circuits:
             to_send = {
                 "circuit": circuit["circuit"],
@@ -69,45 +62,37 @@ class Alice(YaoGarbler):
             self.print(circuit)
 
     def print(self, entry):
-        """Print circuit evaluation for all Bob and Alice inputs.
-
-        Args:
-            entry: A dict representing the circuit to evaluate.
+        """打印所有 Bob 和 Alice 输入的电路评估
+        参数:
+            entry: 要评估的电路的字典.
         """
         circuit, pbits, keys = entry["circuit"], entry["pbits"], entry["keys"]
         outputs = circuit["out"]
-        a_wires = circuit.get("alice", [])  # Alice's wires
-        a_inputs = {}  # map from Alice's wires to (key, encr_bit) inputs
-        b_wires = circuit.get("bob", [])  # Bob's wires
-        b_keys = {  # map from Bob's wires to a pair (key, encr_bit)
+        a_wires = circuit.get("alice", [])  # Alice 的线路
+        a_inputs = {}  # 从 Alice 的线路映射到 (key, encr_bit) 输入
+        b_wires = circuit.get("bob", [])  # Bob 的线路
+        b_keys = {  # 从 Bob 的电线映射到一对 (key, encr_bit)
             w: self._get_encr_bits(pbits[w], key0, key1)
             for w, (key0, key1) in keys.items() if w in b_wires
         }
         N = len(a_wires) + len(b_wires)
-
         print(f"======== {circuit['id']} ========")
-
-        # Generate all inputs for both Alice and Bob
+        # 为 Alice 和 Bob 生成所有输入
         for bits in [format(n, 'b').zfill(N) for n in range(2**N)]:
-            bits_a = [int(b) for b in bits[:len(a_wires)]]  # Alice's inputs
-
-            # Map Alice's wires to (key, encr_bit)
+            bits_a = [int(b) for b in bits[:len(a_wires)]]  # Alice 的输入
+            # 将 Alice 的线路映射到 (key, encr_bit)
             for i in range(len(a_wires)):
                 a_inputs[a_wires[i]] = (keys[a_wires[i]][bits_a[i]],
                                         pbits[a_wires[i]] ^ bits_a[i])
-
-            # Send Alice's encrypted inputs and keys to Bob
+            # 将 Alice 的加密输入和密钥发送给 Bob
             result = self.ot.get_result(a_inputs, b_keys)
-
-            # Format output
+            # 格式化输出
             str_bits_a = ' '.join(bits[:len(a_wires)])
             str_bits_b = ' '.join(bits[len(a_wires):])
             str_result = ' '.join([str(result[w]) for w in outputs])
-
             print(f"  Alice{a_wires} = {str_bits_a} "
                   f"Bob{b_wires} = {str_bits_b}  "
                   f"Outputs{outputs} = {str_result}")
-
         print()
 
     def _get_encr_bits(self, pbit, key0, key1):
@@ -115,21 +100,17 @@ class Alice(YaoGarbler):
 
 
 class Bob:
-    """Bob is the receiver and evaluator of the Yao circuit.
-
-    Bob receives the Yao circuit from Alice, computes the results and sends
-    them back.
-
+    """Bob 是 Yao 电路的接收者和评估者.
+    Bob 从 Alice 接收 Yao 电路，计算结果并发送他们回去.
     Args:
-        oblivious_transfer: Optional; enable the Oblivious Transfer protocol
-            (True by default).
+       oblivious_transfer：可选;启用不经意传输协议(默认为真0。
     """
     def __init__(self, oblivious_transfer=True):
         self.socket = util.EvaluatorSocket()
         self.ot = ot.ObliviousTransfer(self.socket, enabled=oblivious_transfer)
 
     def listen(self):
-        """Start listening for Alice messages."""
+        """开始监听 Alice 的消息."""
         logging.info("Start listening")
         try:
             for entry in self.socket.poll_socket():
@@ -139,44 +120,36 @@ class Bob:
             logging.info("Stop listening")
 
     def send_evaluation(self, entry):
-        """Evaluate yao2mpc circuit for all Bob and Alice's inputs and
-        send back the results.
-
-        Args:
-            entry: A dict representing the circuit to evaluate.
+        """评估所有 Bob 和 Alice 的输入的 yao 电路发送回结果.
+        参数:
+            entry: 表示要评估的电路的字典。
         """
         circuit, pbits_out = entry["circuit"], entry["pbits_out"]
         garbled_tables = entry["garbled_tables"]
-        a_wires = circuit.get("alice", [])  # list of Alice's wires
-        b_wires = circuit.get("bob", [])  # list of Bob's wires
+        a_wires = circuit.get("alice", [])  # 列出 Alice 的线路
+        b_wires = circuit.get("bob", [])  # 列出 Bob 的线路
         N = len(a_wires) + len(b_wires)
 
         print(f"Received {circuit['id']}")
 
-        # Generate all possible inputs for both Alice and Bob
+        # 为 Alice 和 Bob 生成所有可能的输入
         for bits in [format(n, 'b').zfill(N) for n in range(2**N)]:
-            bits_b = [int(b) for b in bits[N - len(b_wires):]]  # Bob's inputs
-
-            # Create dict mapping each wire of Bob to Bob's input
+            bits_b = [int(b) for b in bits[N - len(b_wires):]]  # Bob 的输入
+            # 创建 dict 将 Bob 的每一根线映射到 Bob 的输入
             b_inputs_clear = {
                 b_wires[i]: bits_b[i]
                 for i in range(len(b_wires))
             }
-
-            # Evaluate and send result to Alice
-            self.ot.send_result(circuit, garbled_tables, pbits_out,
-                                b_inputs_clear)
+            # 评估并将结果发送给 Alice
+            self.ot.send_result(circuit, garbled_tables, pbits_out, b_inputs_clear)
 
 
 class LocalTest(YaoGarbler):
-    """A class for local tests.
-
-    Print a circuit evaluation or garbled tables.
-
-    Args:
-        circuits: the JSON file containing circuits
-        print_mode: Print a clear version of the garbled tables or
-            the circuit evaluation (the default).
+    """一个本地测试类.
+    打印电路评估或乱码表。
+    参数:
+        circuits: 包含电路的 JSON 文件
+        print_mode: 打印乱码表格的清晰版本或电路评估（默认）
     """
     def __init__(self, circuits, print_mode="circuit"):
         super().__init__(circuits)
@@ -188,55 +161,51 @@ class LocalTest(YaoGarbler):
         logging.info(f"Print mode: {print_mode}")
 
     def start(self):
-        """Start local Yao protocol."""
+        """开启本地 Yao 协议"""
         for circuit in self.circuits:
             self.modes[self.print_mode](circuit)
 
     def _print_tables(self, entry):
-        """Print garbled tables."""
+        """打印电路表"""
         entry["garbled_circuit"].print_garbled_tables()
 
     def _print_evaluation(self, entry):
-        """Print circuit evaluation."""
+        """打印电路评估值."""
         circuit, pbits, keys = entry["circuit"], entry["pbits"], entry["keys"]
         garbled_tables = entry["garbled_tables"]
         outputs = circuit["out"]
-        a_wires = circuit.get("alice", [])  # Alice's wires
-        a_inputs = {}  # map from Alice's wires to (key, encr_bit) inputs
-        b_wires = circuit.get("bob", [])  # Bob's wires
-        b_inputs = {}  # map from Bob's wires to (key, encr_bit) inputs
-        pbits_out = {w: pbits[w] for w in outputs}  # p-bits of outputs
+        a_wires = circuit.get("alice", [])  # Alice 的线路
+        a_inputs = {}  # 从 Alice 的线路映射到 (key, encr_bit) 输入
+        b_wires = circuit.get("bob", [])  # Bob 的线路
+        b_inputs = {}  # 从 Bob 的电线映射到 (key, encr_bit) 输入
+        pbits_out = {w: pbits[w] for w in outputs}  # p-bits 输出
         N = len(a_wires) + len(b_wires)
-
         print(f"======== {circuit['id']} ========")
-
-        # Generate all possible inputs for both Alice and Bob
+        # 为 Alice 和 Bob 生成所有可能的输入
         for bits in [format(n, 'b').zfill(N) for n in range(2**N)]:
             bits_a = [int(b) for b in bits[:len(a_wires)]]  # Alice's inputs
             bits_b = [int(b) for b in bits[N - len(b_wires):]]  # Bob's inputs
-
-            # Map Alice's wires to (key, encr_bit)
+            # 将 Alice 的线路映射到 (key, encr_bit)
             for i in range(len(a_wires)):
-                a_inputs[a_wires[i]] = (keys[a_wires[i]][bits_a[i]],
-                                        pbits[a_wires[i]] ^ bits_a[i])
+                a_inputs[a_wires[i]] = (
+                    keys[a_wires[i]][bits_a[i]],
+                    pbits[a_wires[i]] ^ bits_a[i]
+                )
 
-            # Map Bob's wires to (key, encr_bit)
+            # 将 Bob 的电线映射到 (key, encr_bit)
             for i in range(len(b_wires)):
-                b_inputs[b_wires[i]] = (keys[b_wires[i]][bits_b[i]],
-                                        pbits[b_wires[i]] ^ bits_b[i])
-
-            result = yao.evaluate(circuit, garbled_tables, pbits_out, a_inputs,
-                                  b_inputs)
-
-            # Format output
+                b_inputs[b_wires[i]] = (
+                    keys[b_wires[i]][bits_b[i]],
+                    pbits[b_wires[i]] ^ bits_b[i]
+                )
+            result = yao.evaluate(circuit, garbled_tables, pbits_out, a_inputs, b_inputs)
+            # 格式化输出
             str_bits_a = ' '.join(bits[:len(a_wires)])
             str_bits_b = ' '.join(bits[len(a_wires):])
             str_result = ' '.join([str(result[w]) for w in outputs])
-
             print(f"  Alice{a_wires} = {str_bits_a} "
                   f"Bob{b_wires} = {str_bits_b}  "
                   f"Outputs{outputs} = {str_result}")
-
         print()
 
     @property
