@@ -18,3 +18,7 @@ def rsa_encrypt(content: str, public: str):
 def rsa_decrypt(cipher_text, private_key):
     text = rsa.decrypt(cipher_text, private_key)
     return text
+
+
+if __name__ == '__main__':
+    gk = rsa_generate_key(2048)

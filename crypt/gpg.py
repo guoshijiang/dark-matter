@@ -13,8 +13,7 @@ class GPGKeygen:
     name_email: str = "backend@163.com"
     passphrase: str = "1234567890"
 
-    def __init__(self,  key_type: str = "RSA", key_length: int = 2048,
-                 name_email: st r ="backend@163.com", passphrase :st r ="1234567890"):
+    def __init__(self,  key_type: str = "RSA", key_length: int = 2048, name_email: str ="backend@163.com", passphrase :str ="1234567890"):
         self.key_type = key_type
         self.key_length = key_length
         self.name_email = name_email
@@ -55,3 +54,8 @@ class GPGKeygen:
     def decrypt(self, ncrypted_data: str, passphrase: str):
         decrypted_data = gpg.decrypt(ncrypted_data, passphrase=passphrase)
         return decrypted_data
+
+
+if __name__ == '__main__':
+    gk = GPGKeygen()
+    gk.create_gpg_key()
