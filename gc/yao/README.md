@@ -71,7 +71,7 @@ Makefile 包含最有用的命令，但您也可以直接使用脚本：
 * 门 id 是门输出的 id。
 
 
-## Example
+## 例子
 ![smart](./figures/smart.png)
 
 这是上述电路的 json 表示:
