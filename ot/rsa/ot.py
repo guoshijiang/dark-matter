@@ -151,9 +151,9 @@ if __name__ == "__main__":
     alphabet = "abcdefghijklmnopqrstuvwxyz"
     secrets = [b'Secret message 1', b'Secret message 2', b'Secret message 3', b'Secret message 4']
     secret_length = len(secrets[0])
-    t = 2
+    t = 4
     alice = Alice(secrets, t, secret_length)
-    bob = Bob([0, 3])
+    bob = Bob([0, 1, 2, 3])
     alice.setup()
     bob.setup()
     alice.transmit()
